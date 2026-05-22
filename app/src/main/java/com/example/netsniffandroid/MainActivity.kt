@@ -2,8 +2,10 @@ package com.example.netsniffandroid
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.TextView
+import com.example.netsniffandroid.core.logging.NetSniffLogger
+import com.example.netsniffandroid.core.nativebridge.NativeBridge
 import com.example.netsniffandroid.databinding.ActivityMainBinding
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,7 +18,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Example of a call to a native method
-        binding.sampleText.text = stringFromJNI()
+        //binding.sampleText.text = stringFromJNI()
+        val nativeVersion = NativeBridge.getNativeVersion()
+        binding.sampleText.text = "NETSNIFF ENGINE READY\n$nativVersion"
+
+        NetSniffLogger.i("MainActivity initialized")
+
+
     }
 
     /**
