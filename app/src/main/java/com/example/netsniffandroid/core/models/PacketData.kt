@@ -1,5 +1,7 @@
 package com.example.netsniffandroid.core.models
 
+
+
 data class PacketData (
 
     val timestamp : Long,
@@ -9,7 +11,7 @@ data class PacketData (
     val destinationIp: String,
     val payload : ByteArray
 
-    ) {
+) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
