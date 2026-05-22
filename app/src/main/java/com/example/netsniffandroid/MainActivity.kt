@@ -1,42 +1,29 @@
 package com.example.netsniffandroid
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.example.netsniffandroid.core.logging.NetSniffLogger
+import android.widget.TextView
 import com.example.netsniffandroid.core.nativebridge.NativeBridge
-import com.example.netsniffandroid.databinding.ActivityMainBinding
-
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
+    // Group view declarations at the top for neatness
+    private lateinit var sampleTextView: TextView
 
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main) // Standard layout inflation
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        // Initialize views immediately
 
-        // Example of a call to a native method
-        //binding.sampleText.text = stringFromJNI()
+
+        // Proceed with your logic and JNI C++ code
         val nativeVersion = NativeBridge.getNativeVersion()
-        binding.sampleText.text = "NETSNIFF ENGINE READY\n$nativVersion"
+         val sampleTextView = findViewById<TextView>(R.id.sample_text)
+        sampleTextView.text = "NETSNIFFF ENGINE READY\nVersion: $nativeVersion"
 
-        NetSniffLogger.i("MainActivity initialized")
 
-
-    }
-
-    /**
-     * A native method that is implemented by the 'netsniffandroid' native library,
-     * which is packaged with this application.
-     */
-    external fun stringFromJNI(): String
-
-    companion object {
-        // Used to load the 'netsniffandroid' library on application startup.
-        init {
-            System.loadLibrary("netsniffandroid")
-        }
     }
 }

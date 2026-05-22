@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "com.example.netsniffandroid"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.netsniffandroid"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -35,12 +35,17 @@ android {
             version = "4.1.2"
         }
     }
-    /*
-    *    buildFeatures {
+/*
+
+
+       buildFeatures {
         viewBinding = true
 
+
     }
-    * */
+    */
+
+
 }
 
 dependencies {
