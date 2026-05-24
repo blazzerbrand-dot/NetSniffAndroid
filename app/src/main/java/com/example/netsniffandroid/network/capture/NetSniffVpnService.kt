@@ -13,6 +13,11 @@ import com.example.netsniffandroid.network.parser.PortClassifier
 //import for the sessions tracking
 import com.example.netsniffandroid.network.session.SessionKey
 import com.example.netsniffandroid.network.session.SessionManager
+//imports for the  VPN notifications
+import android.content.Intent
+import com.example.netsniffandroid.core.utils.NotificationConstants
+import com.example.netsniffandroid.core.notification.NotificationHelper
+
 
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
@@ -29,6 +34,11 @@ class NetSniffVpnService : VpnService() {
     override fun onCreate() {
         super.onCreate()
         NetSniffLogger.i("VPN Service created")
+
+        //creating notification channel
+        NotificationHelper.createNotificationChannel(
+            this
+        )
 
     }
 
