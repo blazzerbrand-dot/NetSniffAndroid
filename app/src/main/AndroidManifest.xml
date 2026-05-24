@@ -11,16 +11,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NETSNIFFANDROID">
-        <service
-            android:name=".network.capture.NetSniffVpnService"
-            android:permission="android.permission.BIND_VPN_SERVICE"
-            android:exported="false"
-            tools:ignore="VpnServicePolicy">
+        <!--adding foreground vpn service-->
+     <service
+         android:name="com.example.netsniffandroid.network.capture.NetSniffVpnService"
+         android:permission="android.permission.BIND_VPN_SERVICE"
+         android:exported="false"
+         android:foregroundServiceType="dataSync"
+         tools:ignore="VpnServicePolicy">
 
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-        </intent-filter>
-        </service>
+         <intent-filter>
+             <action android:name="android.net.VpnService"/>
+         </intent-filter>
+     </service>
         <activity
             android:name=".MainActivity"
             android:exported="true">
