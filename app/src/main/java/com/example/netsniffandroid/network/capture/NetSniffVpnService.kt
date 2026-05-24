@@ -10,6 +10,9 @@ import com.example.netsniffandroid.network.parser.TCPParser
 import com.example.netsniffandroid.network.parser.UDPparser
 import com.example.netsniffandroid.network.parser.PortClassifier
 
+//import for the sessions tracking
+import com.example.netsniffandroid.network.session.SessionKey
+import com.example.netsniffandroid.network.session.SessionManager
 
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
@@ -83,6 +86,8 @@ class NetSniffVpnService : VpnService() {
                                      iPv4Header.protocol
                                  )
                              when (iPv4Header.protocol) {
+
+                                 //now we are updating the TCP because we have added the sessions tracking
                                  Protocol.TCP -> {
 
                                      //parsing the tcpheader
@@ -91,7 +96,25 @@ class NetSniffVpnService : VpnService() {
                                              packet,
                                              iPv4Header.headerLength
                                          )
+                                     //checking if tcpHeader null??
                                      if(tcpHeader != null) {
+                                         //implementing sessionKey
+                                         val sessionKey=
+                                         SessionKey(
+                                             sourceIp = iPv4Header.sourceIp,
+                                             sourcePort = tcpHeader.sourcePort,
+                                             destinationIp = iPv4Header.destinationIp,
+                                             destinationPort = tcpHeader.destinationPort,
+                                             protocol ="TCP"
+                                         )
+
+                                         //implementing session manager
+
+                                         SessionManager.processSession(
+                                             sessionKey = sessionKey,
+                                             packetLength = iPv4Header.totalLength,
+                                             isOutgoing = true
+                                         )
                                          val service =
                                              PortClassifier.classify(
                                                  tcpHeader.destinationPort
@@ -117,6 +140,7 @@ class NetSniffVpnService : VpnService() {
 
                                  Protocol.UDP ->  {
                                      //parsing the udpheader
+
                                      val udpHeader =
                                          UDPparser.parse(
                                              packet,
@@ -125,6 +149,23 @@ class NetSniffVpnService : VpnService() {
                                          )
 
                                      if(udpHeader != null) {
+
+                                         //implementing the session key
+                                         val sessionKey=
+                                             SessionKey(
+                                                 sourceIp = iPv4Header.sourceIp,
+                                                 sourcePort = udpHeader.sourcePort,
+                                                 destinationIp = iPv4Header.destinationIp,
+                                                 destinationPort = udpHeader.destinationPort,
+                                                 protocol = "UDP"
+                                             )
+                                         //implementing the session manager for udp protocol
+                                         SessionManager.processSession(
+                                             sessionKey = sessionKey,
+                                             packetLength = udpHeader.length,
+                                             isOutgoing = true
+
+                                         )
                                          val service =
                                              PortClassifier.classify(
                                                      udpHeader.destinationPort
