@@ -1,29 +1,78 @@
 package com.example.netsniffandroid
 
-import android.annotation.SuppressLint
-import androidx.appcompat.app.AppCompatActivity
+import android.app.Activity
+import android.content.Intent
+import android.net.VpnService
 import android.os.Bundle
-import android.widget.TextView
-import com.example.netsniffandroid.core.nativebridge.NativeBridge
+import androidx.appcompat.app.AppCompatActivity
+import com.example.netsniffandroid.core.logging.NetSniffLogger
+import com.example.netsniffandroid.databinding.ActivityMainBinding
+import com.example.netsniffandroid.network.capture.NetSniffVpnService
 
 class MainActivity : AppCompatActivity() {
 
-    // Group view declarations at the top for neatness
-    private lateinit var sampleTextView: TextView
+    private lateinit var binding: ActivityMainBinding
 
-    @SuppressLint("MissingInflatedId")
+    private var vpnService: NetSniffVpnService? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main) // Standard layout inflation
 
-        // Initialize views immediately
+        binding = ActivityMainBinding.inflate(layoutInflater)
 
+        setContentView(binding.root)
 
-        // Proceed with your logic and JNI C++ code
-        val nativeVersion = NativeBridge.getNativeVersion()
-         val sampleTextView = findViewById<TextView>(R.id.sample_text)
-        sampleTextView.text = "NETSNIFFF ENGINE READY\nVersion: $nativeVersion"
+        binding.sampleText.text =
+            "NETSNIFF VPN ENGINE"
 
+        prepareVpn()
+    }
 
+    private fun prepareVpn() {
+
+        val intent = VpnService.prepare(this)
+
+        if (intent != null) {
+
+            startActivityForResult(intent, 100)
+
+        } else {
+
+            onActivityResult(
+                100,
+                Activity.RESULT_OK,
+                null
+            )
+        }
+    }
+
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        super.onActivityResult(
+            requestCode,
+            resultCode,
+            data
+        )
+
+        if (
+            requestCode == 100 &&
+            resultCode == RESULT_OK
+        ) {
+
+            NetSniffLogger.i("VPN permission granted")
+
+            vpnService = NetSniffVpnService()
+
+            vpnService?.startCapture()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        vpnService?.stopCapture()
     }
 }
