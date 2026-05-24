@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private var vpnService: NetSniffVpnService? = null
+
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,11 +40,10 @@ class MainActivity : AppCompatActivity() {
 
         } else {
 
-            onActivityResult(
-                100,
-                Activity.RESULT_OK,
-                null
-            )
+          val serviceIntent = Intent(this, NetSniffVpnService::class.java).apply {
+              action = NetSniffVpnService.ACTION_START
+          }
+            startService(serviceIntent)
         }
     }
 
@@ -66,15 +65,20 @@ class MainActivity : AppCompatActivity() {
 
             NetSniffLogger.i("VPN permission granted")
 
-            vpnService = NetSniffVpnService()
-
-            vpnService?.startCapture()
+           //launch the service cleanly using the system intent
+            val serviceIntent = Intent(this, NetSniffVpnService::class.java).apply{
+                action = NetSniffVpnService.ACTION_START
+            }
+            startService(serviceIntent)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-
-        vpnService?.stopCapture()
+          // request the service to stop via intent command
+        val serviceIntent = Intent(this, NetSniffVpnService::class.java).apply{
+            action = NetSniffVpnService.ACTION_STOP
+        }
+        startService(serviceIntent)
     }
 }
