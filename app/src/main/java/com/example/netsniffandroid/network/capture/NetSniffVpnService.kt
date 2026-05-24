@@ -1,5 +1,9 @@
 package com.example.netsniffandroid.network.capture
 
+//imoprts for the for the first real analysis pipeline
+import com.example.netsniffandroid.network.parser.IPv4Parser
+import com.example.netsniffandroid.network.parser.PacketClassifier
+
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import  com.example.netsniffandroid.core.logging.NetSniffLogger
@@ -59,7 +63,27 @@ class NetSniffVpnService : VpnService() {
                      val packet = ByteArray(AppConstants.MAX_PACKET_SIZE)
                      val length = inputStream.read(packet)
                      if(length > 0 ) {
-                         NetSniffLogger.d("Captured packet size : $length bytes")
+                         //this is for only with packet size only
+                        //   NetSniffLogger.d("Captured packet size : $length bytes")
+                     //now integrating the IPv4 parsing into capture pipeline
+                         val iPv4Header =
+                             IPv4Parser.parse(packet)
+
+                         if(iPv4Header != null) {
+                             val protocolName =
+                                 PacketClassifier.getProtocolName(
+                                     iPv4Header.protocol
+                                 )
+                             NetSniffLogger.d(
+                                 """
+                                    Packet Captured
+                                  Source IP: ${ipv4Header.sourceIp}
+                                  Destination IP: ${ipv4Header.destinationIp}
+                                  Protocol: $protocolName
+                                  Length: ${ipv4Header.totalLength}
+                                   """.trimIndent()
+                             )
+                         }
                      }
                  }
                  catch (e:Exception) {
