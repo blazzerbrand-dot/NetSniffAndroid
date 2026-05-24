@@ -3,6 +3,7 @@ package com.example.netsniffandroid.network.capture
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import  com.example.netsniffandroid.core.logging.NetSniffLogger
+import com.example.netsniffandroid.core.utils.AppConstants
 import com.example.netsniffandroid.core.threading.CaptureThread
 import java.io.FileInputStream
 
@@ -36,10 +37,10 @@ class NetSniffVpnService : VpnService() {
 
         val builder = Builder()
         builder
-            .setSession("NETSNIFF")
+            .setSession(AppConstants.TAG)
             .addAddress("10.0.0.2",24)
             .addRoute("0.0.0.0",0)
-            .setMtu(1500)
+            .setMtu(AppConstants.VPN_MTU)
 
         vpnInterface = builder.establish()
 
@@ -55,7 +56,7 @@ class NetSniffVpnService : VpnService() {
          captureThread = CaptureThread(
              Runnable {
                  try {
-                     val packet = ByteArray(65535)
+                     val packet = ByteArray(AppConstants.MAX_PACKET_SIZE)
                      val length = inputStream.read(packet)
                      if(length > 0 ) {
                          NetSniffLogger.d("Captured packet size : $length bytes")
