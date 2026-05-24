@@ -230,4 +230,12 @@ class NetSniffVpnService : VpnService() {
         NetSniffLogger.i("VPN Capture Stopped")
     }
 
+    //adding action constants
+    companion object{
+        const val ACTION_START =
+            "ACTION_START_VPN"
+        const val ACTION_STOP=
+            "ACTION_STOP_VPN"
+    }
+
 }
