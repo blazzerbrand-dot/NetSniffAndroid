@@ -37,6 +37,17 @@ class NetSniffVpnService : VpnService() {
             NotificationConstants.NOTIFICATION_ID,
             NotificationHelper.buildVpnNotification(this)
         )
+        when (intent?.action) {
+            ACTION_START -> {
+                startVpn()
+
+            }
+            ACTION_STOP -> {
+                stopVpn()
+                stopSelf()
+
+            }
+        }
 
         return START_STICKY
     }
