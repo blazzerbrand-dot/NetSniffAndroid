@@ -4,6 +4,13 @@ package com.example.netsniffandroid.network.capture
 import com.example.netsniffandroid.network.parser.IPv4Parser
 import com.example.netsniffandroid.network.parser.PacketClassifier
 
+//imports for the second layer transport layer
+import com.example.netsniffandroid.network.parser.Protocol
+import com.example.netsniffandroid.network.parser.TCPParser
+import com.example.netsniffandroid.network.parser.UDPparser
+import com.example.netsniffandroid.network.parser.PortClassifier
+
+
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import  com.example.netsniffandroid.core.logging.NetSniffLogger
@@ -66,6 +73,7 @@ class NetSniffVpnService : VpnService() {
                          //this is for only with packet size only
                         //   NetSniffLogger.d("Captured packet size : $length bytes")
                      //now integrating the IPv4 parsing into capture pipeline
+                         //parsing the ipheader
                          val iPv4Header =
                              IPv4Parser.parse(packet)
 
@@ -74,15 +82,70 @@ class NetSniffVpnService : VpnService() {
                                  PacketClassifier.getProtocol(
                                      iPv4Header.protocol
                                  )
-                             NetSniffLogger.d(
-                                 """
-                                    Packet Captured
-                                  Source IP: ${iPv4Header.sourceIp}
-                                  Destination IP: ${iPv4Header.destinationIp}
-                                  Protocol: $protocolName
-                                  Length: ${iPv4Header.totalLength}
-                                   """.trimIndent()
-                             )
+                             when (iPv4Header.protocol) {
+                                 Protocol.TCP -> {
+
+                                     //parsing the tcpheader
+                                     val tcpHeader =
+                                         TCPParser.parse(
+                                             packet,
+                                             iPv4Header.headerLength
+                                         )
+                                     if(tcpHeader != null) {
+                                         val service =
+                                             PortClassifier.classify(
+                                                 tcpHeader.destinationPort
+                                             )
+                                         //displaying on the log cat
+
+                                         NetSniffLogger.d(
+                                             """
+                                                TCP Packet
+                                                ${iPv4Header.sourceIp}:${tcpHeader.sourcePort}
+                                                 →
+                                               ${iPv4Header.destinationIp}:${tcpHeader.destinationPort}
+                        
+                                                Service: $service
+                                                Flags: ${tcpHeader.flags}
+                                                Seq: ${tcpHeader.sequenceNumber}
+                                                Ack: ${tcpHeader.acknowledgmentNumber}
+                                                """.trimIndent()
+                                         )
+                                     }
+
+                                 }
+
+                                 Protocol.UDP ->  {
+                                     //parsing the udpheader
+                                     val udpHeader =
+                                         UDPparser.parse(
+                                             packet,
+                                             iPv4Header.headerLength
+
+                                         )
+
+                                     if(udpHeader != null) {
+                                         val service =
+                                             PortClassifier.classify(
+                                                     udpHeader.destinationPort
+
+
+                                             )
+                                         NetSniffLogger.d(
+                                             """
+                                               UDP Packet
+                                               ${iPv4Header.sourceIp}:${udpHeader.sourcePort}
+                                               →
+                                               ${iPv4Header.destinationIp}:${udpHeader.destinationPort}
+                        
+                                               Service: $service
+                                               Length: ${udpHeader.length}
+                                             """.trimIndent()
+                                         )
+                                     }
+                                 }
+                             }
+
                          }
                      }
                  }
