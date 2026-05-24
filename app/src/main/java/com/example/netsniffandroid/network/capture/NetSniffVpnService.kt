@@ -71,16 +71,16 @@ class NetSniffVpnService : VpnService() {
 
                          if(iPv4Header != null) {
                              val protocolName =
-                                 PacketClassifier.getProtocolName(
+                                 PacketClassifier.getProtocol(
                                      iPv4Header.protocol
                                  )
                              NetSniffLogger.d(
                                  """
                                     Packet Captured
-                                  Source IP: ${ipv4Header.sourceIp}
-                                  Destination IP: ${ipv4Header.destinationIp}
+                                  Source IP: ${iPv4Header.sourceIp}
+                                  Destination IP: ${iPv4Header.destinationIp}
                                   Protocol: $protocolName
-                                  Length: ${ipv4Header.totalLength}
+                                  Length: ${iPv4Header.totalLength}
                                    """.trimIndent()
                              )
                          }

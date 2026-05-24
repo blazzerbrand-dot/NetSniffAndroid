@@ -1,5 +1,6 @@
 package com.example.netsniffandroid
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.VpnService
@@ -15,6 +16,7 @@ class MainActivity : AppCompatActivity() {
 
     private var vpnService: NetSniffVpnService? = null
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

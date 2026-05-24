@@ -35,15 +35,16 @@ android {
             version = "4.1.2"
         }
     }
-/*
+
 
 
        buildFeatures {
         viewBinding = true
+           dataBinding = true
 
 
     }
-    */
+
 
 
 }
