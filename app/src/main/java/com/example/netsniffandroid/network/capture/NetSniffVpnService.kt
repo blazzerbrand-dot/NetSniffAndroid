@@ -31,6 +31,11 @@ class NetSniffVpnService : VpnService() {
     private var captureThread: CaptureThread? = null
     private var captureState = CaptureState.IDLE
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
+        return super.onStartCommand(intent, flags, startId)
+    }
+
     override fun onCreate() {
         super.onCreate()
         NetSniffLogger.i("VPN Service created")
