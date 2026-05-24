@@ -1,6 +1,7 @@
 package com.example.netsniffandroid.network.capture
 
-//imoprts for the for the first real analysis pipeline
+//imoprts  for the first real analysis pipeline
+import android.annotation.SuppressLint
 import com.example.netsniffandroid.network.parser.IPv4Parser
 import com.example.netsniffandroid.network.parser.PacketClassifier
 
@@ -24,8 +25,10 @@ import android.os.ParcelFileDescriptor
 import  com.example.netsniffandroid.core.logging.NetSniffLogger
 import com.example.netsniffandroid.core.utils.AppConstants
 import com.example.netsniffandroid.core.threading.CaptureThread
+
 import java.io.FileInputStream
 
+@SuppressLint("VpnServicePolicy")
 class NetSniffVpnService : VpnService() {
     private var vpnInterface: ParcelFileDescriptor? = null
     private var captureThread: CaptureThread? = null
@@ -72,7 +75,7 @@ class NetSniffVpnService : VpnService() {
 
     }
     private fun startVpn() {
-        fun startCapture() {
+
             if (captureState == CaptureState.RUNNING) {
                 return
             }
@@ -98,62 +101,62 @@ class NetSniffVpnService : VpnService() {
             }
             val inputStream =
                 FileInputStream(vpnInterface!!.fileDescriptor)
-            captureThread = CaptureThread(
-                Runnable {
-                    try {
-                        val packet = ByteArray(AppConstants.MAX_PACKET_SIZE)
-                        val length = inputStream.read(packet)
-                        if (length > 0) {
-                            //this is for only with packet size only
-                            //   NetSniffLogger.d("Captured packet size : $length bytes")
-                            //now integrating the IPv4 parsing into capture pipeline
-                            //parsing the ipheader
-                            val iPv4Header =
-                                IPv4Parser.parse(packet)
+            captureThread = CaptureThread {
 
-                            if (iPv4Header != null) {
-                                val protocolName =
-                                    PacketClassifier.getProtocol(
-                                        iPv4Header.protocol
-                                    )
-                                when (iPv4Header.protocol) {
+                try {
+                    val packet = ByteArray(AppConstants.MAX_PACKET_SIZE)
+                    val length = inputStream.read(packet)
+                    if (length > 0) {
+                        //this is for only with packet size only
+                        //   NetSniffLogger.d("Captured packet size : $length bytes")
+                        //now integrating the IPv4 parsing into capture pipeline
+                        //parsing the ipheader
+                        val iPv4Header =
+                            IPv4Parser.parse(packet)
 
-                                    //now we are updating the TCP because we have added the sessions tracking
-                                    Protocol.TCP -> {
+                        if (iPv4Header != null) {
+                            val protocolName =
+                                PacketClassifier.getProtocol(
+                                    iPv4Header.protocol
+                                )
+                            when (iPv4Header.protocol) {
 
-                                        //parsing the tcpheader
-                                        val tcpHeader =
-                                            TCPParser.parse(
-                                                packet,
-                                                iPv4Header.headerLength
+                                //now we are updating the TCP because we have added the sessions tracking
+                                Protocol.TCP -> {
+
+                                    //parsing the tcpheader
+                                    val tcpHeader =
+                                        TCPParser.parse(
+                                            packet,
+                                            iPv4Header.headerLength
+                                        )
+                                    //checking if tcpHeader null??
+                                    if (tcpHeader != null) {
+                                        //implementing sessionKey
+                                        val sessionKey =
+                                            SessionKey(
+                                                sourceIp = iPv4Header.sourceIp,
+                                                sourcePort = tcpHeader.sourcePort,
+                                                destinationIp = iPv4Header.destinationIp,
+                                                destinationPort = tcpHeader.destinationPort,
+                                                protocol = protocolName
                                             )
-                                        //checking if tcpHeader null??
-                                        if (tcpHeader != null) {
-                                            //implementing sessionKey
-                                            val sessionKey =
-                                                SessionKey(
-                                                    sourceIp = iPv4Header.sourceIp,
-                                                    sourcePort = tcpHeader.sourcePort,
-                                                    destinationIp = iPv4Header.destinationIp,
-                                                    destinationPort = tcpHeader.destinationPort,
-                                                    protocol = "TCP"
-                                                )
 
-                                            //implementing session manager
+                                        //implementing session manager
 
-                                            SessionManager.processSession(
-                                                sessionKey = sessionKey,
-                                                packetLength = iPv4Header.totalLength,
-                                                isOutgoing = true
+                                        SessionManager.processSession(
+                                            sessionKey = sessionKey,
+                                            packetLength = iPv4Header.totalLength,
+                                            isOutgoing = true
+                                        )
+                                        val service =
+                                            PortClassifier.classify(
+                                                tcpHeader.destinationPort
                                             )
-                                            val service =
-                                                PortClassifier.classify(
-                                                    tcpHeader.destinationPort
-                                                )
-                                            //displaying on the log cat
+                                        //displaying on the log cat
 
-                                            NetSniffLogger.d(
-                                                """
+                                        NetSniffLogger.d(
+                                            """
                                                 TCP Packet
                                                 ${iPv4Header.sourceIp}:${tcpHeader.sourcePort}
                                                  →
@@ -164,47 +167,47 @@ class NetSniffVpnService : VpnService() {
                                                 Seq: ${tcpHeader.sequenceNumber}
                                                 Ack: ${tcpHeader.acknowledgmentNumber}
                                                 """.trimIndent()
-                                            )
-                                        }
-
+                                        )
                                     }
 
-                                    Protocol.UDP -> {
-                                        //parsing the udpheader
+                                }
 
-                                        val udpHeader =
-                                            UDPparser.parse(
-                                                packet,
-                                                iPv4Header.headerLength
+                                Protocol.UDP -> {
+                                    //parsing the udpheader
+
+                                    val udpHeader =
+                                        UDPparser.parse(
+                                            packet,
+                                            iPv4Header.headerLength
+
+                                        )
+
+                                    if (udpHeader != null) {
+
+                                        //implementing the session key
+                                        val sessionKey =
+                                            SessionKey(
+                                                sourceIp = iPv4Header.sourceIp,
+                                                sourcePort = udpHeader.sourcePort,
+                                                destinationIp = iPv4Header.destinationIp,
+                                                destinationPort = udpHeader.destinationPort,
+                                                protocol = "UDP"
+                                            )
+                                        //implementing the session manager for udp protocol
+                                        SessionManager.processSession(
+                                            sessionKey = sessionKey,
+                                            packetLength = udpHeader.length,
+                                            isOutgoing = true
+
+                                        )
+                                        val service =
+                                            PortClassifier.classify(
+                                                udpHeader.destinationPort
+
 
                                             )
-
-                                        if (udpHeader != null) {
-
-                                            //implementing the session key
-                                            val sessionKey =
-                                                SessionKey(
-                                                    sourceIp = iPv4Header.sourceIp,
-                                                    sourcePort = udpHeader.sourcePort,
-                                                    destinationIp = iPv4Header.destinationIp,
-                                                    destinationPort = udpHeader.destinationPort,
-                                                    protocol = "UDP"
-                                                )
-                                            //implementing the session manager for udp protocol
-                                            SessionManager.processSession(
-                                                sessionKey = sessionKey,
-                                                packetLength = udpHeader.length,
-                                                isOutgoing = true
-
-                                            )
-                                            val service =
-                                                PortClassifier.classify(
-                                                    udpHeader.destinationPort
-
-
-                                                )
-                                            NetSniffLogger.d(
-                                                """
+                                        NetSniffLogger.d(
+                                            """
                                                UDP Packet
                                                ${iPv4Header.sourceIp}:${udpHeader.sourcePort}
                                                →
@@ -213,26 +216,27 @@ class NetSniffVpnService : VpnService() {
                                                Service: $service
                                                Length: ${udpHeader.length}
                                              """.trimIndent()
-                                            )
-                                        }
+                                        )
                                     }
                                 }
-
                             }
-                        }
-                    } catch (e: Exception) {
-                        NetSniffLogger.e("Packet capture error : ${e.message}")
-                    }
-                }
-            )
 
-            captureThread?.start()
-            captureState = CaptureState.RUNNING
-            NetSniffLogger.i("VPN capture Started")
-        }
+                        }
+                    }
+                } catch (e: Exception) {
+                    NetSniffLogger.e("Packet capture error : ${e.message}")
+                }
+
+
+            }
+        captureThread?.start()
+        captureState = CaptureState.RUNNING
+        NetSniffLogger.i("VPN capture Started")
+
+
     }
     private fun stopVpn() {
-        fun stopCapture() {
+
             captureState = CaptureState.STOPPING
             captureThread?.shutdown()
             captureThread = null
@@ -240,7 +244,7 @@ class NetSniffVpnService : VpnService() {
             vpnInterface = null
             captureState = CaptureState.STOPPED
             NetSniffLogger.i("VPN Capture Stopped")
-        }
+
     }
 
     //adding action constants
