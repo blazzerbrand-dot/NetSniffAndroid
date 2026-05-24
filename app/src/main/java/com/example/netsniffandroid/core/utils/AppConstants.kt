@@ -8,3 +8,11 @@ object AppConstants {
     const val VPN_MTU = 1500
 
 }
+object NotificationConstants {
+    const val CHANNEL_ID=
+        "netsniff_vpn_channel"
+    const val CHANNEL_NAME =
+        "NETSNIFF VPN"
+    const val NOTIFICATION_ID = 1001
+
+}
