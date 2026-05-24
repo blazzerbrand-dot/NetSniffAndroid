@@ -32,8 +32,13 @@ class NetSniffVpnService : VpnService() {
     private var captureState = CaptureState.IDLE
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        //Start the service in the foreground with the notification
+        startForeground(
+            NotificationConstants.NOTIFICATION_ID,
+            NotificationHelper.buildVpnNotification(this)
+        )
 
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
 
     override fun onCreate() {
